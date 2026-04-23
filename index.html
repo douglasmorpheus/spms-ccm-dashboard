@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPMS-CCM · Dashboard de Entregas</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --c-done: #1D9E75;
+    --c-rft: #EF9F27;
+    --c-inprog: #378ADD;
+    --c-detail: #7F77DD;
+    --c-ready-dev: #D85A30;
+    --c-backlog: #B4B2A9;
+    --c-risk: #E24B4A;
+    --c-ok: #1D9E75;
+    --c-warn: #EF9F27;
+    --bg: #f8f7f4;
+    --surface: #ffffff;
+    --surface2: #f1efe8;
+    --border: rgba(0,0,0,0.08);
+    --text: #1a1a18;
+    --text2: #5f5e5a;
+    --text3: #888780;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111110;
+      --surface: #1c1c1a;
+      --surface2: #242422;
+      --border: rgba(255,255,255,0.08);
+      --text: #f0ede6;
+      --text2: #a0a09a;
+      --text3: #666662;
+      --c-backlog: #444441;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+    padding: 0 0 3rem;
+  }
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 1.25rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 1rem; }
+  .logo-badge {
+    background: #1D9E75;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    padding: 4px 10px;
+    border-radius: 6px;
+    text-transform: uppercase;
+  }
+  .header-title { font-size: 15px; font-weight: 600; color: var(--text); }
+  .header-sub { font-size: 12px; color: var(--text3); margin-top: 1px; }
+  .btn-csv {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text2); font-size: 12px; font-weight: 500;
+    padding: 7px 14px; border-radius: var(--radius-sm);
+    cursor: pointer; text-decoration: none; transition: all .15s;
+    white-space: nowrap;
+  }
+  .btn-csv:hover { border-color: #1D9E75; color: #1D9E75; }
+  .tabs-nav {
+    display: flex; gap: 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    padding: 0 2rem;
+  }
+  .tab-btn {
+    font-size: 13px; font-weight: 500;
+    padding: 0.85rem 1.5rem;
+    border: none; background: none;
+    color: var(--text3); cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px; transition: all .15s;
+  }
+  .tab-btn.active { color: var(--text); border-bottom-color: #1D9E75; }
+  .tab-btn:hover:not(.active) { color: var(--text2); }
+  .tab-pane { display: none; padding: 1.5rem 2rem; }
+  .tab-pane.active { display: block; }
+  .sprint-bar-wrap {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .sprint-bar-header {
+    display: flex; justify-content: space-between;
+    align-items: flex-start; margin-bottom: 0.75rem;
+  }
+  .sprint-label { font-size: 13px; font-weight: 600; color: var(--text); }
+  .sprint-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .sprint-period { font-size: 12px; color: var(--text2); text-align: right; }
+  .sprint-bar-track {
+    position: relative; height: 12px;
+    background: var(--surface2); border-radius: 6px;
+    overflow: hidden; border: 1px solid var(--border);
+    margin-bottom: 5px;
+  }
+  .sprint-bar-done {
+    position: absolute; top: 0; left: 0; height: 100%;
+    background: #1D9E75; border-radius: 6px;
+    transition: width .5s ease;
+  }
+  .sprint-bar-labels {
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: var(--text3);
+  }
+  .sprint-bar-labels span:nth-child(2) { color: var(--text2); font-weight: 500; }
+  .metrics-grid {
+    display: grid; grid-template-columns: repeat(5, minmax(0,1fr));
+    gap: 0.75rem; margin-bottom: 1rem;
+  }
+  .metric-card {
+    background: var(--surface2); border-radius: var(--radius-sm);
+    padding: 0.875rem 1rem;
+  }
+  .metric-label { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+  .metric-value { font-size: 26px; font-weight: 600; line-height: 1; }
+  .metric-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+  .charts-row {
+    display: grid; grid-template-columns: 220px 1fr;
+    gap: 1rem; margin-bottom: 1rem;
+  }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.25rem;
+  }
+  .card-title {
+    font-size: 11px; font-weight: 600; color: var(--text3);
+    text-transform: uppercase; letter-spacing: 0.07em;
+    margin-bottom: 0.875rem;
+  }
+  .legend { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+  .legend-row {
+    display: flex; justify-content: space-between;
+    align-items: center; font-size: 11px;
+  }
+  .legend-left { display: flex; align-items: center; gap: 6px; color: var(--text2); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+  .legend-count { font-weight: 600; color: var(--text); }
+  .kanban-row {
+    display: grid; grid-template-columns: repeat(6, minmax(0,1fr));
+    gap: 0.75rem;
+  }
+  .kanban-col {
+    background: var(--surface2); border-radius: var(--radius-sm);
+    padding: 0.875rem 0.75rem; text-align: center;
+  }
+  .kanban-label {
+    font-size: 10px; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--text3);
+    line-height: 1.3; margin-bottom: 8px; min-height: 2.6em;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .kanban-num { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+  .kanban-bar { height: 3px; border-radius: 2px; margin: 0 auto; width: 32px; }
+  .info-bar {
+    margin-top: 1rem; padding: 0.75rem 1rem;
+    border-radius: var(--radius-sm); display: flex;
+    align-items: flex-start; gap: 10px; font-size: 12px;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text2);
+  }
+  .alert-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+  .footer {
+    text-align: center; font-size: 11px; color: var(--text3);
+    padding: 1rem 2rem 0; border-top: 1px solid var(--border);
+    margin: 1.5rem 2rem 0;
+  }
+  @media (max-width: 768px) {
+    .header { flex-direction: column; gap: 1rem; align-items: flex-start; }
+    .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+    .charts-row { grid-template-columns: 1fr; }
+    .kanban-row { grid-template-columns: repeat(3, 1fr); }
+    body { padding-bottom: 2rem; }
+    .tab-pane { padding: 1rem; }
+    .tabs-nav { padding: 0 1rem; }
+    .header { padding: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <span class="logo-badge">SPMS · CCM</span>
+    <div>
+      <div class="header-title">Dashboard de Entregas</div>
+      <div class="header-sub">Projeto: douglasmorpheus-spms-ccm · Taiga #1779564</div>
+    </div>
+  </div>
+  <button class="btn-csv" onclick="downloadCSV()">↓ Exportar CSV</button>
+</header>
+
+<nav class="tabs-nav">
+  <button class="tab-btn active" onclick="switchTab('e1', this)">1ª Entrega</button>
+  <button class="tab-btn" onclick="switchTab('e2', this)">2ª Entrega</button>
+</nav>
+
+<!-- ═══════════════════════ E1 ═══════════════════════ -->
+<div id="tab-e1" class="tab-pane active">
+
+  <div class="sprint-bar-wrap">
+    <div class="sprint-bar-header">
+      <div>
+        <div class="sprint-label">1ª Entrega — Sprint</div>
+        <div class="sprint-sub">Transversal · DevOps · CI/CD · QA · Conferência Med · MCDT · CRD</div>
+      </div>
+      <div class="sprint-period">
+        01 Mar → 31 Mai 2026<br>
+        <span style="font-size:11px;color:var(--text3);">Hoje: <span id="e1-today-label"></span> · <span id="e1-days-left"></span> dias restantes</span>
+      </div>
+    </div>
+    <div class="sprint-bar-track">
+      <div class="sprint-bar-done" id="e1-done-bar"></div>
+    </div>
+    <div class="sprint-bar-labels">
+      <span>01 Mar</span>
+      <span id="e1-bar-label"></span>
+      <span>31 Mai</span>
+    </div>
+  </div>
+
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-label">Total histórias</div>
+      <div class="metric-value">76</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Done</div>
+      <div class="metric-value" style="color:#1D9E75;">31</div>
+      <div class="metric-sub">41% concluídas</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Em pipeline</div>
+      <div class="metric-value" style="color:#7F77DD;">11</div>
+      <div class="metric-sub">14% em andamento</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Backlog</div>
+      <div class="metric-value">34</div>
+      <div class="metric-sub">45% restantes</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Dias restantes</div>
+      <div class="metric-value" id="e1-days-remaining" style="color:var(--text);"></div>
+      <div class="metric-sub">até 31 Mai 2026</div>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="card">
+      <div class="card-title">Por status</div>
+      <div style="position:relative;height:150px;">
+        <canvas id="e1-donut" role="img" aria-label="31 Done, 3 Ready for test, 1 In progress, 5 Em Detalhamento, 2 Pronto para Dev, 34 Backlog">Distribuição por status E1</canvas>
+      </div>
+      <div class="legend">
+        <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#1D9E75;"></span>Done</span><span class="legend-count">31</span></div>
+        <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#EF9F27;"></span>Ready for test</span><span class="legend-count">3</span></div>
+        <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#378ADD;"></span>In progress</span><span class="legend-count">1</span></div>
+        <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#7F77DD;"></span>Em detalhamento</span><span class="legend-count">5</span></div>
+        <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#D85A30;"></span>Pronto para dev</span><span class="legend-count">2</span></div>
+        <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#B4B2A9;"></span>Backlog</span><span class="legend-count">34</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Progresso por módulo</div>
+      <div style="display:flex;gap:12px;margin-bottom:8px;font-size:11px;color:var(--text3);">
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;background:#1D9E75;border-radius:2px;display:inline-block;"></span>Done</span>
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;background:#7F77DD;border-radius:2px;display:inline-block;"></span>Em andamento</span>
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;background:#D3D1C7;border-radius:2px;display:inline-block;"></span>Backlog</span>
+      </div>
+      <div style="position:relative;height:260px;">
+        <canvas id="e1-bar" role="img" aria-label="Progresso por módulo 1a entrega">Progresso por módulo E1</canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Pipeline kanban</div>
+    <div class="kanban-row">
+      <div class="kanban-col">
+        <div class="kanban-label">Backlog</div>
+        <div class="kanban-num">34</div>
+        <div class="kanban-bar" style="background:#B4B2A9;"></div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-label">Em Detalhamento</div>
+        <div class="kanban-num" style="color:#7F77DD;">5</div>
+        <div class="kanban-bar" style="background:#7F77DD;"></div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-label">Pronto para Dev</div>
+        <div class="kanban-num" style="color:#D85A30;">2</div>
+        <div class="kanban-bar" style="background:#D85A30;"></div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-label">In Progress</div>
+        <div class="kanban-num" style="color:#378ADD;">1</div>
+        <div class="kanban-bar" style="background:#378ADD;"></div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-label">Ready for Test</div>
+        <div class="kanban-num" style="color:#EF9F27;">3</div>
+        <div class="kanban-bar" style="background:#EF9F27;"></div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-label">Done</div>
+        <div class="kanban-num" style="color:#1D9E75;">31</div>
+        <div class="kanban-bar" style="background:#1D9E75;"></div>
+      </div>
+    </div>
+    <div class="info-bar" style="margin-top:1rem;">
+      <div>Pipeline ativo: Motor de Regras (RF#32) e Outputs para Prestadores (RF#40) prontos para desenvolvimento. Enriquecimento de Dados em fase de testes. UX Design com 20 telas entregues.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ E2 ═══════════════════════ -->
+<div id="tab-e2" class="tab-pane">
+
+  <div class="sprint-bar-wrap">
+    <div class="sprint-bar-header">
+      <div>
+        <div class="sprint-label">2ª Entrega — Sprint</div>
+        <div class="sprint-sub">Recepção · Armazém · Worklist · Expedição · BackOffice</div>
+      </div>
+      <div class="sprint-period">
+        01 Mar → 30 Jun 2026<br>
+        <span style="font-size:11px;color:var(--text3);">Hoje: <span id="e2-today-label"></span> · <span id="e2-days-left"></span> dias restantes</span>
+      </div>
+    </div>
+    <div class="sprint-bar-track">
+      <div class="sprint-bar-done" id="e2-done-bar"></div>
+    </div>
+    <div class="sprint-bar-labels">
+      <span>01 Mar</span>
+      <span id="e2-bar-label"></span>
+      <span>30 Jun</span>
+    </div>
+  </div>
+
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-label">Total histórias</div>
+      <div class="metric-value">34</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Done</div>
+      <div class="metric-value" style="color:#1D9E75;">0</div>
+      <div class="metric-sub">0% concluídas</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Em pipeline</div>
+      <div class="metric-value" style="color:#7F77DD;">11</div>
+      <div class="metric-sub">32% em andamento</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Backlog</div>
+      <div class="metric-value">23</div>
+      <div class="metric-sub">68% restantes</div>
+    </div>
+    <div class="metric-card" id="e2-health-card">
+      <div class="metric-label">Dias restantes</div>
+      <div class="metric-value" id="e2-days-remaining" style="color:var(--text);"></div>
+      <div class="metric-sub">até 30 Jun 2026</div>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="card">
+      <div class="card-title">Por status</div>
+      <div style="position:relative;height:150px;">
+        <canvas id="e2-donut" role="img" aria-label="0 Done, 1 Ready for test, 3 In progress, 7 Pronto para Dev, 23 Backlog">Distribuição por status E2</canvas>
+      </div>
+      <div class="legend">
+        <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#1D9E75;"></span>Done</span><span class="legend-count">0</span></div>
+        <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#EF9F27;"></span>Ready for test</span><span class="legend-count">1</span></div>
+        <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#378ADD;"></span>In progress</span><span class="legend-count">3</span></div>
+        <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#D85A30;"></span>Pronto para dev</span><span class="legend-count">7</span></div>
+        <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#B4B2A9;"></span>Backlog</span><span class="legend-count">23</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Progresso por módulo</div>
+      <div style="display:flex;gap:12px;margin-bottom:8px;font-size:11px;color:var(--text3);">
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;background:#1D9E75;border-radius:2px;display:inline-block;"></span>Done</span>
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;background:#7F77DD;border-radius:2px;display:inline-block;"></span>Em andamento</span>
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;background:#D3D1C7;border-radius:2px;display:inline-block;"></span>Backlog</span>
+      </div>
+      <div style="position:relative;height:220px;">
+        <canvas id="e2-bar" role="img" aria-label="Progresso por módulo 2a entrega">Progresso por módulo E2</canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Pipeline kanban</div>
+    <div class="kanban-row">
+      <div class="kanban-col">
+        <div class="kanban-label">Backlog</div>
+        <div class="kanban-num">23</div>
+        <div class="kanban-bar" style="background:#B4B2A9;"></div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-label">Em Detalhamento</div>
+        <div class="kanban-num" style="color:#7F77DD;">0</div>
+        <div class="kanban-bar" style="background:#7F77DD;"></div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-label">Pronto para Dev</div>
+        <div class="kanban-num" style="color:#D85A30;">7</div>
+        <div class="kanban-bar" style="background:#D85A30;"></div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-label">In Progress</div>
+        <div class="kanban-num" style="color:#378ADD;">3</div>
+        <div class="kanban-bar" style="background:#378ADD;"></div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-label">Ready for Test</div>
+        <div class="kanban-num" style="color:#EF9F27;">1</div>
+        <div class="kanban-bar" style="background:#EF9F27;"></div>
+      </div>
+      <div class="kanban-col">
+        <div class="kanban-label">Done</div>
+        <div class="kanban-num" style="color:#1D9E75;">0</div>
+        <div class="kanban-bar" style="background:#1D9E75;"></div>
+      </div>
+    </div>
+    <div class="info-bar" style="margin-top:1rem;">
+      <div>Pipeline em evolução: 7 histórias prontas para desenvolvimento, 3 em progresso e 1 em fase de testes. RF#29 Consulta por Área de Prestação avançando em múltiplos módulos simultaneamente.</div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer" id="footer-ts">
+  Gerado em <span id="gen-date"></span> · Dados: Taiga SPMS-CCM #1779564 · <a href="https://tree.taiga.io/project/douglasmorpheus-spms-ccm/timeline" style="color:var(--text3);" target="_blank">Ver no Taiga →</a>
+</footer>
+
+<script>
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function calcSprintMetrics(startStr, endStr, done, total) {
+  const now = new Date();
+  const start = new Date(startStr);
+  const end = new Date(endStr);
+  const totalDays = Math.round((end - start) / 86400000);
+  const elapsed = Math.min(Math.round((now - start) / 86400000), totalDays);
+  const remaining = Math.max(totalDays - elapsed, 0);
+  const pctDone = total > 0 ? Math.round(done / total * 100) : 0;
+  return { pctDone, remaining };
+}
+
+function applySprintUI(prefix, startStr, endStr, done, total) {
+  const m = calcSprintMetrics(startStr, endStr, done, total);
+  const today = new Date();
+  const dd = String(today.getDate()).padStart(2,'0');
+  const mm = String(today.getMonth()+1).padStart(2,'0');
+  document.getElementById(prefix+'-today-label').textContent = dd+'/'+mm+'/'+today.getFullYear();
+  document.getElementById(prefix+'-days-left').textContent = m.remaining;
+  document.getElementById(prefix+'-done-bar').style.width = m.pctDone + '%';
+  document.getElementById(prefix+'-bar-label').textContent = m.pctDone + '% concluído · ' + m.remaining + ' dias restantes';
+  document.getElementById(prefix+'-days-remaining').textContent = m.remaining;
+}
+
+applySprintUI('e1', '2026-03-01', '2026-05-31', 31, 76);
+applySprintUI('e2', '2026-03-01', '2026-06-30', 0, 34);
+
+const now = new Date();
+document.getElementById('gen-date').textContent =
+  String(now.getDate()).padStart(2,'0') + '/' + String(now.getMonth()+1).padStart(2,'0') + '/' + now.getFullYear() +
+  ' às ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+
+const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+const gridC = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
+const lblC = isDark ? '#888780' : '#5F5E5A';
+const bgDark = isDark ? '#1c1c1a' : '#ffffff';
+
+Chart.defaults.color = lblC;
+
+new Chart(document.getElementById('e1-donut'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Done','Ready for test','In progress','Em detalhamento','Pronto para dev','Backlog'],
+    datasets: [{ data: [31,3,1,5,2,34],
+      backgroundColor: ['#1D9E75','#EF9F27','#378ADD','#7F77DD','#D85A30', isDark ? '#444441' : '#B4B2A9'],
+      borderWidth: 2, borderColor: bgDark }]
+  },
+  options: { responsive: true, maintainAspectRatio: false, cutout: '68%',
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' ' + c.label + ': ' + c.raw + ' (' + Math.round(c.raw/76*100) + '%)' }}}
+  }
+});
+
+new Chart(document.getElementById('e1-bar'), {
+  type: 'bar',
+  data: {
+    labels: ['BackOffice & Rel.','Outputs & Integração','Conferência & Regras','Enriquecimento','CI/CD & QA','UX Design','Infra & DevOps'],
+    datasets: [
+      { label: 'Done',         data: [0,0,0,0,1,20,10], backgroundColor: '#1D9E75', borderRadius: 3 },
+      { label: 'Em andamento', data: [0,4,4,3,0,0,0],   backgroundColor: '#7F77DD', borderRadius: 3 },
+      { label: 'Backlog',      data: [5,0,3,0,13,11,2], backgroundColor: isDark ? '#444441' : '#D3D1C7', borderRadius: 3 }
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { stacked: true, grid: { color: gridC }, ticks: { font: { size: 11 }, stepSize: 5 }},
+      y: { stacked: true, grid: { display: false }, ticks: { font: { size: 11 }}}
+    }
+  }
+});
+
+new Chart(document.getElementById('e2-donut'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Done','Ready for test','In progress','Pronto para dev','Backlog'],
+    datasets: [{ data: [0,1,3,7,23],
+      backgroundColor: ['#1D9E75','#EF9F27','#378ADD','#D85A30', isDark ? '#444441' : '#B4B2A9'],
+      borderWidth: 2, borderColor: bgDark }]
+  },
+  options: { responsive: true, maintainAspectRatio: false, cutout: '68%',
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' ' + c.label + ': ' + c.raw + ' (' + Math.round(c.raw/34*100) + '%)' }}}
+  }
+});
+
+new Chart(document.getElementById('e2-bar'), {
+  type: 'bar',
+  data: {
+    labels: ['Recepção/Armazém','Worklist & Picking','Controlo & Contab.','Rec. Electrónica','Consulta RF#29','Dados Referência'],
+    datasets: [
+      { label: 'Done',         data: [0,0,0,0,0,0], backgroundColor: '#1D9E75', borderRadius: 3 },
+      { label: 'Em andamento', data: [0,1,0,0,10,0], backgroundColor: '#7F77DD', borderRadius: 3 },
+      { label: 'Backlog',      data: [9,3,3,4,0,4],  backgroundColor: isDark ? '#444441' : '#D3D1C7', borderRadius: 3 }
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { stacked: true, grid: { color: gridC }, ticks: { font: { size: 11 }, stepSize: 3 }},
+      y: { stacked: true, grid: { display: false }, ticks: { font: { size: 11 }}}
+    }
+  }
+});
+
+function downloadCSV() {
+  const now = new Date();
+  const dt = now.toISOString().slice(0,10);
+  const ts = String(now.getDate()).padStart(2,'0')+'/'+String(now.getMonth()+1).padStart(2,'0')+'/'+now.getFullYear()+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  const rows = [
+    ['Entrega','Total','Done','Ready for Test','In Progress','Em Detalhamento','Pronto para Dev','Backlog','% Conclusão','Dias Restantes','Data Geração'],
+    ['Entrega 1','76','31','3','1','5','2','34','41%','39',ts],
+    ['Entrega 2','34','0','1','3','0','7','23','0%','68',ts],
+    ['TOTAL','110','31','4','4','5','9','57','28%','—',ts]
+  ];
+  const csv = rows.map(r => r.map(v => '"'+v+'"').join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'spms-ccm-dashboard-'+dt+'.csv';
+  a.click(); URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
