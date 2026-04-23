@@ -4,199 +4,65 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SPMS-CCM · Dashboard de Entregas</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
   :root {
-    --c-done: #1D9E75;
-    --c-rft: #EF9F27;
-    --c-inprog: #378ADD;
-    --c-detail: #7F77DD;
-    --c-ready-dev: #D85A30;
-    --c-backlog: #B4B2A9;
-    --c-risk: #E24B4A;
-    --c-ok: #1D9E75;
-    --c-warn: #EF9F27;
-    --bg: #f8f7f4;
-    --surface: #ffffff;
-    --surface2: #f1efe8;
-    --border: rgba(0,0,0,0.08);
-    --text: #1a1a18;
-    --text2: #5f5e5a;
-    --text3: #888780;
-    --radius: 12px;
-    --radius-sm: 8px;
+    --bg: #f8f7f4; --surface: #ffffff; --surface2: #f1efe8;
+    --border: rgba(0,0,0,0.08); --text: #1a1a18; --text2: #5f5e5a; --text3: #888780;
+    --radius: 12px; --radius-sm: 8px;
   }
   @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #111110;
-      --surface: #1c1c1a;
-      --surface2: #242422;
-      --border: rgba(255,255,255,0.08);
-      --text: #f0ede6;
-      --text2: #a0a09a;
-      --text3: #666662;
-      --c-backlog: #444441;
-    }
+    :root { --bg:#111110;--surface:#1c1c1a;--surface2:#242422;--border:rgba(255,255,255,0.08);--text:#f0ede6;--text2:#a0a09a;--text3:#666662; }
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    font-size: 14px;
-    line-height: 1.5;
-    min-height: 100vh;
-    padding: 0 0 3rem;
-  }
-  .header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 1.25rem 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .header-left { display: flex; align-items: center; gap: 1rem; }
-  .logo-badge {
-    background: #1D9E75;
-    color: #fff;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    padding: 4px 10px;
-    border-radius: 6px;
-    text-transform: uppercase;
-  }
-  .header-title { font-size: 15px; font-weight: 600; color: var(--text); }
-  .header-sub { font-size: 12px; color: var(--text3); margin-top: 1px; }
-  .btn-csv {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: var(--surface2); border: 1px solid var(--border);
-    color: var(--text2); font-size: 12px; font-weight: 500;
-    padding: 7px 14px; border-radius: var(--radius-sm);
-    cursor: pointer; text-decoration: none; transition: all .15s;
-    white-space: nowrap;
-  }
-  .btn-csv:hover { border-color: #1D9E75; color: #1D9E75; }
-  .tabs-nav {
-    display: flex; gap: 0;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-    padding: 0 2rem;
-  }
-  .tab-btn {
-    font-size: 13px; font-weight: 500;
-    padding: 0.85rem 1.5rem;
-    border: none; background: none;
-    color: var(--text3); cursor: pointer;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -1px; transition: all .15s;
-  }
-  .tab-btn.active { color: var(--text); border-bottom-color: #1D9E75; }
-  .tab-btn:hover:not(.active) { color: var(--text2); }
-  .tab-pane { display: none; padding: 1.5rem 2rem; }
-  .tab-pane.active { display: block; }
-  .sprint-bar-wrap {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 1.25rem 1.5rem;
-    margin-bottom: 1rem;
-  }
-  .sprint-bar-header {
-    display: flex; justify-content: space-between;
-    align-items: flex-start; margin-bottom: 0.75rem;
-  }
-  .sprint-label { font-size: 13px; font-weight: 600; color: var(--text); }
-  .sprint-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
-  .sprint-period { font-size: 12px; color: var(--text2); text-align: right; }
-  .sprint-bar-track {
-    position: relative; height: 12px;
-    background: var(--surface2); border-radius: 6px;
-    overflow: hidden; border: 1px solid var(--border);
-    margin-bottom: 5px;
-  }
-  .sprint-bar-done {
-    position: absolute; top: 0; left: 0; height: 100%;
-    background: #1D9E75; border-radius: 6px;
-    transition: width .5s ease;
-  }
-  .sprint-bar-labels {
-    display: flex; justify-content: space-between;
-    font-size: 11px; color: var(--text3);
-  }
-  .sprint-bar-labels span:nth-child(2) { color: var(--text2); font-weight: 500; }
-  .metrics-grid {
-    display: grid; grid-template-columns: repeat(5, minmax(0,1fr));
-    gap: 0.75rem; margin-bottom: 1rem;
-  }
-  .metric-card {
-    background: var(--surface2); border-radius: var(--radius-sm);
-    padding: 0.875rem 1rem;
-  }
-  .metric-label { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
-  .metric-value { font-size: 26px; font-weight: 600; line-height: 1; }
-  .metric-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
-  .charts-row {
-    display: grid; grid-template-columns: 220px 1fr;
-    gap: 1rem; margin-bottom: 1rem;
-  }
-  .card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 1.25rem;
-  }
-  .card-title {
-    font-size: 11px; font-weight: 600; color: var(--text3);
-    text-transform: uppercase; letter-spacing: 0.07em;
-    margin-bottom: 0.875rem;
-  }
-  .legend { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
-  .legend-row {
-    display: flex; justify-content: space-between;
-    align-items: center; font-size: 11px;
-  }
-  .legend-left { display: flex; align-items: center; gap: 6px; color: var(--text2); }
-  .legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
-  .legend-count { font-weight: 600; color: var(--text); }
-  .kanban-row {
-    display: grid; grid-template-columns: repeat(6, minmax(0,1fr));
-    gap: 0.75rem;
-  }
-  .kanban-col {
-    background: var(--surface2); border-radius: var(--radius-sm);
-    padding: 0.875rem 0.75rem; text-align: center;
-  }
-  .kanban-label {
-    font-size: 10px; text-transform: uppercase;
-    letter-spacing: 0.06em; color: var(--text3);
-    line-height: 1.3; margin-bottom: 8px; min-height: 2.6em;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .kanban-num { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
-  .kanban-bar { height: 3px; border-radius: 2px; margin: 0 auto; width: 32px; }
-  .info-bar {
-    margin-top: 1rem; padding: 0.75rem 1rem;
-    border-radius: var(--radius-sm); display: flex;
-    align-items: flex-start; gap: 10px; font-size: 12px;
-    background: var(--surface2); border: 1px solid var(--border);
-    color: var(--text2);
-  }
-  .alert-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
-  .footer {
-    text-align: center; font-size: 11px; color: var(--text3);
-    padding: 1rem 2rem 0; border-top: 1px solid var(--border);
-    margin: 1.5rem 2rem 0;
-  }
-  @media (max-width: 768px) {
-    .header { flex-direction: column; gap: 1rem; align-items: flex-start; }
-    .metrics-grid { grid-template-columns: repeat(2, 1fr); }
-    .charts-row { grid-template-columns: 1fr; }
-    .kanban-row { grid-template-columns: repeat(3, 1fr); }
-    body { padding-bottom: 2rem; }
-    .tab-pane { padding: 1rem; }
-    .tabs-nav { padding: 0 1rem; }
-    .header { padding: 1rem; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh;padding:0 0 3rem;}
+  .header{background:var(--surface);border-bottom:1px solid var(--border);padding:1.25rem 2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+  .header-left{display:flex;align-items:center;gap:1rem;}
+  .logo-badge{background:#1D9E75;color:#fff;font-size:11px;font-weight:600;letter-spacing:.08em;padding:4px 10px;border-radius:6px;text-transform:uppercase;}
+  .header-title{font-size:15px;font-weight:600;color:var(--text);}
+  .header-sub{font-size:12px;color:var(--text3);margin-top:1px;}
+
+  .tabs-nav{display:flex;border-bottom:1px solid var(--border);background:var(--surface);padding:0 2rem;}
+  .tab-btn{font-size:13px;font-weight:500;padding:.85rem 1.5rem;border:none;background:none;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;}
+  .tab-btn.active{color:var(--text);border-bottom-color:#1D9E75;}
+  .tab-btn:hover:not(.active){color:var(--text2);}
+  .tab-pane{display:none;padding:1.5rem 2rem;}
+  .tab-pane.active{display:block;}
+  .sprint-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1rem;}
+  .sprint-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem;}
+  .sprint-label{font-size:13px;font-weight:600;color:var(--text);}
+  .sprint-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+  .sprint-period{font-size:12px;color:var(--text2);text-align:right;}
+  .sprint-track{position:relative;height:12px;background:var(--surface2);border-radius:6px;overflow:hidden;border:1px solid var(--border);margin-bottom:5px;}
+  .sprint-fill{position:absolute;top:0;left:0;height:100%;background:#1D9E75;border-radius:6px;transition:width .5s ease;}
+  .sprint-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);}
+  .sprint-labels span:nth-child(2){color:var(--text2);font-weight:500;}
+  .metrics-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.75rem;margin-bottom:1rem;}
+  .mc{background:var(--surface2);border-radius:var(--radius-sm);padding:.875rem 1rem;}
+  .mc-lbl{font-size:11px;color:var(--text3);margin-bottom:4px;}
+  .mc-val{font-size:26px;font-weight:600;line-height:1;}
+  .mc-sub{font-size:11px;color:var(--text3);margin-top:4px;}
+  .charts-row{display:grid;grid-template-columns:220px 1fr;gap:1rem;margin-bottom:1rem;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;}
+  .card-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.875rem;}
+  .legend{display:flex;flex-direction:column;gap:6px;margin-top:10px;}
+  .leg-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;}
+  .leg-left{display:flex;align-items:center;gap:6px;color:var(--text2);}
+  .leg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+  .leg-n{font-weight:600;color:var(--text);}
+  .kanban{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.75rem;}
+  .kcol{background:var(--surface2);border-radius:var(--radius-sm);padding:.875rem .75rem;text-align:center;}
+  .klbl{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);line-height:1.3;margin-bottom:8px;min-height:2.6em;display:flex;align-items:center;justify-content:center;}
+  .knum{font-size:28px;font-weight:700;margin-bottom:6px;}
+  .kbar{height:3px;border-radius:2px;margin:0 auto;width:32px;}
+  .info-bar{margin-top:1rem;padding:.75rem 1rem;border-radius:var(--radius-sm);display:flex;align-items:flex-start;gap:10px;font-size:12px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);}
+  .footer{text-align:center;font-size:11px;color:var(--text3);padding:1rem 2rem 0;border-top:1px solid var(--border);margin:1.5rem 2rem 0;}
+  @media(max-width:768px){
+    .header{flex-direction:column;gap:1rem;align-items:flex-start;}
+    .metrics-grid{grid-template-columns:repeat(2,1fr);}
+    .charts-row{grid-template-columns:1fr;}
+    .kanban{grid-template-columns:repeat(3,1fr);}
+    .tab-pane{padding:1rem;}
+    .tabs-nav,.header{padding:0 1rem;}
   }
 </style>
 </head>
@@ -210,78 +76,49 @@
       <div class="header-sub">Projeto: douglasmorpheus-spms-ccm · Taiga #1779564</div>
     </div>
   </div>
-  <button class="btn-csv" onclick="downloadCSV()">↓ Exportar CSV</button>
+  <button onclick="downloadCSV()" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);font-size:12px;font-weight:500;padding:7px 14px;border-radius:8px;cursor:pointer;white-space:nowrap;">↓ Exportar CSV</button>
 </header>
 
 <nav class="tabs-nav">
-  <button class="tab-btn active" onclick="switchTab('e1', this)">1ª Entrega</button>
-  <button class="tab-btn" onclick="switchTab('e2', this)">2ª Entrega</button>
+  <button class="tab-btn active" onclick="switchTab('e1',this)">1ª Entrega</button>
+  <button class="tab-btn" onclick="switchTab('e2',this)">2ª Entrega</button>
 </nav>
 
-<!-- ═══════════════════════ E1 ═══════════════════════ -->
+<!-- ═══ E1 ═══ -->
 <div id="tab-e1" class="tab-pane active">
-
-  <div class="sprint-bar-wrap">
-    <div class="sprint-bar-header">
+  <div class="sprint-wrap">
+    <div class="sprint-header">
       <div>
         <div class="sprint-label">1ª Entrega — Sprint</div>
         <div class="sprint-sub">Transversal · DevOps · CI/CD · QA · Conferência Med · MCDT · CRD</div>
       </div>
       <div class="sprint-period">
-        01 Mar → 31 Mai 2026<br>
-        <span style="font-size:11px;color:var(--text3);">Hoje: <span id="e1-today-label"></span> · <span id="e1-days-left"></span> dias restantes</span>
+        <span style="font-size:11px;color:var(--text3);">Hoje: <span id="e1-td"></span> · <span id="e1-dr"></span> dias restantes</span>
       </div>
     </div>
-    <div class="sprint-bar-track">
-      <div class="sprint-bar-done" id="e1-done-bar"></div>
-    </div>
-    <div class="sprint-bar-labels">
-      <span>01 Mar</span>
-      <span id="e1-bar-label"></span>
-      <span>31 Mai</span>
-    </div>
+    <div class="sprint-track"><div class="sprint-fill" id="e1-bar-fill"></div></div>
+    <div class="sprint-labels"><span></span><span id="e1-bar-lbl"></span><span></span></div>
   </div>
 
   <div class="metrics-grid">
-    <div class="metric-card">
-      <div class="metric-label">Total histórias</div>
-      <div class="metric-value">76</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">Done</div>
-      <div class="metric-value" style="color:#1D9E75;">31</div>
-      <div class="metric-sub">41% concluídas</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">Em pipeline</div>
-      <div class="metric-value" style="color:#7F77DD;">11</div>
-      <div class="metric-sub">14% em andamento</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">Backlog</div>
-      <div class="metric-value">34</div>
-      <div class="metric-sub">45% restantes</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">Dias restantes</div>
-      <div class="metric-value" id="e1-days-remaining" style="color:var(--text);"></div>
-      <div class="metric-sub">até 31 Mai 2026</div>
-    </div>
+    <div class="mc"><div class="mc-lbl">Total histórias</div><div class="mc-val">115</div></div>
+    <div class="mc"><div class="mc-lbl">Done</div><div class="mc-val" style="color:#1D9E75;">45</div><div class="mc-sub">39% concluídas</div></div>
+    <div class="mc"><div class="mc-lbl">Em pipeline</div><div class="mc-val" style="color:#7F77DD;">19</div><div class="mc-sub">17% em andamento</div></div>
+    <div class="mc"><div class="mc-lbl">Backlog</div><div class="mc-val">51</div><div class="mc-sub">44% restantes</div></div>
+    <div class="mc"><div class="mc-lbl">Dias restantes</div><div class="mc-val" id="e1-days-val"></div></div>
   </div>
 
   <div class="charts-row">
     <div class="card">
       <div class="card-title">Por status</div>
-      <div style="position:relative;height:150px;">
-        <canvas id="e1-donut" role="img" aria-label="31 Done, 3 Ready for test, 1 In progress, 5 Em Detalhamento, 2 Pronto para Dev, 34 Backlog">Distribuição por status E1</canvas>
-      </div>
+      <div style="position:relative;height:150px;"><canvas id="e1-donut" role="img" aria-label="45 Done, 3 Ready for test, 4 In progress, 5 Em Detalhamento, 7 Pronto para Dev, 51 Backlog">Distribuição por status E1</canvas></div>
       <div class="legend">
-        <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#1D9E75;"></span>Done</span><span class="legend-count">31</span></div>
-        <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#EF9F27;"></span>Ready for test</span><span class="legend-count">3</span></div>
-        <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#378ADD;"></span>In progress</span><span class="legend-count">1</span></div>
-        <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#7F77DD;"></span>Em detalhamento</span><span class="legend-count">5</span></div>
-        <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#D85A30;"></span>Pronto para dev</span><span class="legend-count">2</span></div>
-        <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#B4B2A9;"></span>Backlog</span><span class="legend-count">34</span></div>
+        <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#1D9E75;"></span>Done</span><span class="leg-n">45</span></div>
+        <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#EF9F27;"></span>Ready for test</span><span class="leg-n">3</span></div>
+        <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#378ADD;"></span>In progress</span><span class="leg-n">4</span></div>
+        <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#7F77DD;"></span>Em detalhamento</span><span class="leg-n">5</span></div>
+        <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#D85A30;"></span>Pronto para dev</span><span class="leg-n">7</span></div>
+        <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#B4B2A9;"></span>Backlog</span><span class="leg-n">51</span></div>
       </div>
     </div>
     <div class="card">
@@ -291,115 +128,60 @@
         <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;background:#7F77DD;border-radius:2px;display:inline-block;"></span>Em andamento</span>
         <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;background:#D3D1C7;border-radius:2px;display:inline-block;"></span>Backlog</span>
       </div>
-      <div style="position:relative;height:260px;">
-        <canvas id="e1-bar" role="img" aria-label="Progresso por módulo 1a entrega">Progresso por módulo E1</canvas>
-      </div>
+      <div style="position:relative;height:290px;"><canvas id="e1-barchart" role="img" aria-label="Progresso por módulo E1">Progresso por módulo E1</canvas></div>
     </div>
   </div>
 
   <div class="card">
     <div class="card-title">Pipeline kanban</div>
-    <div class="kanban-row">
-      <div class="kanban-col">
-        <div class="kanban-label">Backlog</div>
-        <div class="kanban-num">34</div>
-        <div class="kanban-bar" style="background:#B4B2A9;"></div>
-      </div>
-      <div class="kanban-col">
-        <div class="kanban-label">Em Detalhamento</div>
-        <div class="kanban-num" style="color:#7F77DD;">5</div>
-        <div class="kanban-bar" style="background:#7F77DD;"></div>
-      </div>
-      <div class="kanban-col">
-        <div class="kanban-label">Pronto para Dev</div>
-        <div class="kanban-num" style="color:#D85A30;">2</div>
-        <div class="kanban-bar" style="background:#D85A30;"></div>
-      </div>
-      <div class="kanban-col">
-        <div class="kanban-label">In Progress</div>
-        <div class="kanban-num" style="color:#378ADD;">1</div>
-        <div class="kanban-bar" style="background:#378ADD;"></div>
-      </div>
-      <div class="kanban-col">
-        <div class="kanban-label">Ready for Test</div>
-        <div class="kanban-num" style="color:#EF9F27;">3</div>
-        <div class="kanban-bar" style="background:#EF9F27;"></div>
-      </div>
-      <div class="kanban-col">
-        <div class="kanban-label">Done</div>
-        <div class="kanban-num" style="color:#1D9E75;">31</div>
-        <div class="kanban-bar" style="background:#1D9E75;"></div>
-      </div>
+    <div class="kanban">
+      <div class="kcol"><div class="klbl">Backlog</div><div class="knum">51</div><div class="kbar" style="background:#B4B2A9;"></div></div>
+      <div class="kcol"><div class="klbl">Em Detalhamento</div><div class="knum" style="color:#7F77DD;">5</div><div class="kbar" style="background:#7F77DD;"></div></div>
+      <div class="kcol"><div class="klbl">Pronto para Dev</div><div class="knum" style="color:#D85A30;">7</div><div class="kbar" style="background:#D85A30;"></div></div>
+      <div class="kcol"><div class="klbl">In Progress</div><div class="knum" style="color:#378ADD;">4</div><div class="kbar" style="background:#378ADD;"></div></div>
+      <div class="kcol"><div class="klbl">Ready for Test</div><div class="knum" style="color:#EF9F27;">3</div><div class="kbar" style="background:#EF9F27;"></div></div>
+      <div class="kcol"><div class="klbl">Done</div><div class="knum" style="color:#1D9E75;">45</div><div class="kbar" style="background:#1D9E75;"></div></div>
     </div>
-    <div class="info-bar" style="margin-top:1rem;">
-      <div>Pipeline ativo: Motor de Regras (RF#32) e Outputs para Prestadores (RF#40) prontos para desenvolvimento. Enriquecimento de Dados em fase de testes. UX Design com 20 telas entregues.</div>
+    <div class="info-bar">
+      45 histórias concluídas (39%) num total de 115 — 34 telas UX entregues e infraestrutura core operacional. 19 histórias em pipeline, com Enriquecimento em fase de testes, Conferência e Outputs em detalhamento e desenvolvimento.
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════ E2 ═══════════════════════ -->
+<!-- ═══ E2 ═══ -->
 <div id="tab-e2" class="tab-pane">
-
-  <div class="sprint-bar-wrap">
-    <div class="sprint-bar-header">
+  <div class="sprint-wrap">
+    <div class="sprint-header">
       <div>
         <div class="sprint-label">2ª Entrega — Sprint</div>
         <div class="sprint-sub">Recepção · Armazém · Worklist · Expedição · BackOffice</div>
       </div>
       <div class="sprint-period">
-        01 Mar → 30 Jun 2026<br>
-        <span style="font-size:11px;color:var(--text3);">Hoje: <span id="e2-today-label"></span> · <span id="e2-days-left"></span> dias restantes</span>
+        <span style="font-size:11px;color:var(--text3);">Hoje: <span id="e2-td"></span> · <span id="e2-dr"></span> dias restantes</span>
       </div>
     </div>
-    <div class="sprint-bar-track">
-      <div class="sprint-bar-done" id="e2-done-bar"></div>
-    </div>
-    <div class="sprint-bar-labels">
-      <span>01 Mar</span>
-      <span id="e2-bar-label"></span>
-      <span>30 Jun</span>
-    </div>
+    <div class="sprint-track"><div class="sprint-fill" id="e2-bar-fill"></div></div>
+    <div class="sprint-labels"><span></span><span id="e2-bar-lbl"></span><span></span></div>
   </div>
 
   <div class="metrics-grid">
-    <div class="metric-card">
-      <div class="metric-label">Total histórias</div>
-      <div class="metric-value">34</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">Done</div>
-      <div class="metric-value" style="color:#1D9E75;">0</div>
-      <div class="metric-sub">0% concluídas</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">Em pipeline</div>
-      <div class="metric-value" style="color:#7F77DD;">11</div>
-      <div class="metric-sub">32% em andamento</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">Backlog</div>
-      <div class="metric-value">23</div>
-      <div class="metric-sub">68% restantes</div>
-    </div>
-    <div class="metric-card" id="e2-health-card">
-      <div class="metric-label">Dias restantes</div>
-      <div class="metric-value" id="e2-days-remaining" style="color:var(--text);"></div>
-      <div class="metric-sub">até 30 Jun 2026</div>
-    </div>
+    <div class="mc"><div class="mc-lbl">Total histórias</div><div class="mc-val">34</div></div>
+    <div class="mc"><div class="mc-lbl">Done</div><div class="mc-val" style="color:#1D9E75;">0</div><div class="mc-sub">0% concluídas</div></div>
+    <div class="mc"><div class="mc-lbl">Em pipeline</div><div class="mc-val" style="color:#7F77DD;">11</div><div class="mc-sub">32% em andamento</div></div>
+    <div class="mc"><div class="mc-lbl">Backlog</div><div class="mc-val">23</div><div class="mc-sub">68% restantes</div></div>
+    <div class="mc"><div class="mc-lbl">Dias restantes</div><div class="mc-val" id="e2-days-val"></div></div>
   </div>
 
   <div class="charts-row">
     <div class="card">
       <div class="card-title">Por status</div>
-      <div style="position:relative;height:150px;">
-        <canvas id="e2-donut" role="img" aria-label="0 Done, 1 Ready for test, 3 In progress, 7 Pronto para Dev, 23 Backlog">Distribuição por status E2</canvas>
-      </div>
+      <div style="position:relative;height:150px;"><canvas id="e2-donut" role="img" aria-label="0 Done, 1 Ready for test, 3 In progress, 7 Pronto para Dev, 23 Backlog">Distribuição por status E2</canvas></div>
       <div class="legend">
-        <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#1D9E75;"></span>Done</span><span class="legend-count">0</span></div>
-        <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#EF9F27;"></span>Ready for test</span><span class="legend-count">1</span></div>
-        <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#378ADD;"></span>In progress</span><span class="legend-count">3</span></div>
-        <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#D85A30;"></span>Pronto para dev</span><span class="legend-count">7</span></div>
-        <div class="legend-row"><span class="legend-left"><span class="legend-dot" style="background:#B4B2A9;"></span>Backlog</span><span class="legend-count">23</span></div>
+        <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#1D9E75;"></span>Done</span><span class="leg-n">0</span></div>
+        <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#EF9F27;"></span>Ready for test</span><span class="leg-n">1</span></div>
+        <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#378ADD;"></span>In progress</span><span class="leg-n">3</span></div>
+        <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#D85A30;"></span>Pronto para dev</span><span class="leg-n">7</span></div>
+        <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#B4B2A9;"></span>Backlog</span><span class="leg-n">23</span></div>
       </div>
     </div>
     <div class="card">
@@ -409,182 +191,282 @@
         <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;background:#7F77DD;border-radius:2px;display:inline-block;"></span>Em andamento</span>
         <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;background:#D3D1C7;border-radius:2px;display:inline-block;"></span>Backlog</span>
       </div>
-      <div style="position:relative;height:220px;">
-        <canvas id="e2-bar" role="img" aria-label="Progresso por módulo 2a entrega">Progresso por módulo E2</canvas>
-      </div>
+      <div style="position:relative;height:220px;"><canvas id="e2-barchart" role="img" aria-label="Progresso por módulo E2">Progresso por módulo E2</canvas></div>
     </div>
   </div>
 
   <div class="card">
     <div class="card-title">Pipeline kanban</div>
-    <div class="kanban-row">
-      <div class="kanban-col">
-        <div class="kanban-label">Backlog</div>
-        <div class="kanban-num">23</div>
-        <div class="kanban-bar" style="background:#B4B2A9;"></div>
-      </div>
-      <div class="kanban-col">
-        <div class="kanban-label">Em Detalhamento</div>
-        <div class="kanban-num" style="color:#7F77DD;">0</div>
-        <div class="kanban-bar" style="background:#7F77DD;"></div>
-      </div>
-      <div class="kanban-col">
-        <div class="kanban-label">Pronto para Dev</div>
-        <div class="kanban-num" style="color:#D85A30;">7</div>
-        <div class="kanban-bar" style="background:#D85A30;"></div>
-      </div>
-      <div class="kanban-col">
-        <div class="kanban-label">In Progress</div>
-        <div class="kanban-num" style="color:#378ADD;">3</div>
-        <div class="kanban-bar" style="background:#378ADD;"></div>
-      </div>
-      <div class="kanban-col">
-        <div class="kanban-label">Ready for Test</div>
-        <div class="kanban-num" style="color:#EF9F27;">1</div>
-        <div class="kanban-bar" style="background:#EF9F27;"></div>
-      </div>
-      <div class="kanban-col">
-        <div class="kanban-label">Done</div>
-        <div class="kanban-num" style="color:#1D9E75;">0</div>
-        <div class="kanban-bar" style="background:#1D9E75;"></div>
-      </div>
+    <div class="kanban">
+      <div class="kcol"><div class="klbl">Backlog</div><div class="knum">23</div><div class="kbar" style="background:#B4B2A9;"></div></div>
+      <div class="kcol"><div class="klbl">Em Detalhamento</div><div class="knum" style="color:#7F77DD;">0</div><div class="kbar" style="background:#7F77DD;"></div></div>
+      <div class="kcol"><div class="klbl">Pronto para Dev</div><div class="knum" style="color:#D85A30;">7</div><div class="kbar" style="background:#D85A30;"></div></div>
+      <div class="kcol"><div class="klbl">In Progress</div><div class="knum" style="color:#378ADD;">3</div><div class="kbar" style="background:#378ADD;"></div></div>
+      <div class="kcol"><div class="klbl">Ready for Test</div><div class="knum" style="color:#EF9F27;">1</div><div class="kbar" style="background:#EF9F27;"></div></div>
+      <div class="kcol"><div class="klbl">Done</div><div class="knum" style="color:#1D9E75;">0</div><div class="kbar" style="background:#1D9E75;"></div></div>
     </div>
-    <div class="info-bar" style="margin-top:1rem;">
-      <div>Pipeline em evolução: 7 histórias prontas para desenvolvimento, 3 em progresso e 1 em fase de testes. RF#29 Consulta por Área de Prestação avançando em múltiplos módulos simultaneamente.</div>
+    <div class="info-bar">
+      Pipeline em evolução: 7 histórias prontas para desenvolvimento, 3 em progresso e 1 em fase de testes. RF#29 Consulta por Área de Prestação avançando em múltiplos módulos simultaneamente.
     </div>
   </div>
 </div>
 
-<footer class="footer" id="footer-ts">
-  Gerado em <span id="gen-date"></span> · Dados: Taiga SPMS-CCM #1779564 · <a href="https://tree.taiga.io/project/douglasmorpheus-spms-ccm/timeline" style="color:var(--text3);" target="_blank">Ver no Taiga →</a>
+<footer class="footer">
+  Gerado em <span id="gen-date"></span> · Dados: Taiga SPMS-CCM #1779564 ·
+  <a href="https://tree.taiga.io/project/douglasmorpheus-spms-ccm/timeline" style="color:var(--text3);" target="_blank">Ver no Taiga →</a>
 </footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-function switchTab(id, btn) {
-  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + id).classList.add('active');
+function switchTab(id,btn){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
   btn.classList.add('active');
 }
 
-function calcSprintMetrics(startStr, endStr, done, total) {
-  const now = new Date();
-  const start = new Date(startStr);
-  const end = new Date(endStr);
-  const totalDays = Math.round((end - start) / 86400000);
-  const elapsed = Math.min(Math.round((now - start) / 86400000), totalDays);
-  const remaining = Math.max(totalDays - elapsed, 0);
-  const pctDone = total > 0 ? Math.round(done / total * 100) : 0;
-  return { pctDone, remaining };
+function initSprint(prefix,startStr,endStr,done,total){
+  const now=new Date(), start=new Date(startStr), end=new Date(endStr);
+  const remaining=Math.max(Math.round((end-now)/86400000),0);
+  const pct=total>0?Math.round(done/total*100):0;
+  const dd=String(now.getDate()).padStart(2,'0'), mm=String(now.getMonth()+1).padStart(2,'0');
+  document.getElementById(prefix+'-td').textContent=dd+'/'+mm+'/'+now.getFullYear();
+  document.getElementById(prefix+'-dr').textContent=remaining;
+  document.getElementById(prefix+'-bar-fill').style.width=pct+'%';
+  document.getElementById(prefix+'-bar-lbl').textContent=pct+'% concluído · '+remaining+' dias restantes';
+  document.getElementById(prefix+'-days-val').textContent=remaining;
 }
 
-function applySprintUI(prefix, startStr, endStr, done, total) {
-  const m = calcSprintMetrics(startStr, endStr, done, total);
-  const today = new Date();
-  const dd = String(today.getDate()).padStart(2,'0');
-  const mm = String(today.getMonth()+1).padStart(2,'0');
-  document.getElementById(prefix+'-today-label').textContent = dd+'/'+mm+'/'+today.getFullYear();
-  document.getElementById(prefix+'-days-left').textContent = m.remaining;
-  document.getElementById(prefix+'-done-bar').style.width = m.pctDone + '%';
-  document.getElementById(prefix+'-bar-label').textContent = m.pctDone + '% concluído · ' + m.remaining + ' dias restantes';
-  document.getElementById(prefix+'-days-remaining').textContent = m.remaining;
-}
+initSprint('e1','2026-03-01','2026-05-31',45,115);
+initSprint('e2','2026-03-01','2026-06-30',0,34);
 
-applySprintUI('e1', '2026-03-01', '2026-05-31', 31, 76);
-applySprintUI('e2', '2026-03-01', '2026-06-30', 0, 34);
+const now=new Date();
+document.getElementById('gen-date').textContent=
+  String(now.getDate()).padStart(2,'0')+'/'+String(now.getMonth()+1).padStart(2,'0')+'/'+now.getFullYear()+
+  ' às '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
 
-const now = new Date();
-document.getElementById('gen-date').textContent =
-  String(now.getDate()).padStart(2,'0') + '/' + String(now.getMonth()+1).padStart(2,'0') + '/' + now.getFullYear() +
-  ' às ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+const dk=matchMedia('(prefers-color-scheme: dark)').matches;
+const gridC=dk?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.04)';
+const lblC=dk?'#888780':'#5F5E5A';
+const bgC=dk?'#1c1c1a':'#ffffff';
+const blkC=dk?'#444441':'#B4B2A9';
+const blkB=dk?'#333331':'#D3D1C7';
+Chart.defaults.color=lblC;
 
-const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
-const gridC = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
-const lblC = isDark ? '#888780' : '#5F5E5A';
-const bgDark = isDark ? '#1c1c1a' : '#ffffff';
-
-Chart.defaults.color = lblC;
-
-new Chart(document.getElementById('e1-donut'), {
-  type: 'doughnut',
-  data: {
-    labels: ['Done','Ready for test','In progress','Em detalhamento','Pronto para dev','Backlog'],
-    datasets: [{ data: [31,3,1,5,2,34],
-      backgroundColor: ['#1D9E75','#EF9F27','#378ADD','#7F77DD','#D85A30', isDark ? '#444441' : '#B4B2A9'],
-      borderWidth: 2, borderColor: bgDark }]
-  },
-  options: { responsive: true, maintainAspectRatio: false, cutout: '68%',
-    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' ' + c.label + ': ' + c.raw + ' (' + Math.round(c.raw/76*100) + '%)' }}}
-  }
+new Chart(document.getElementById('e1-donut'),{
+  type:'doughnut',
+  data:{labels:['Done','Ready for test','In progress','Em detalhamento','Pronto para dev','Backlog'],
+    datasets:[{data:[45,3,4,5,7,51],backgroundColor:['#1D9E75','#EF9F27','#378ADD','#7F77DD','#D85A30',blkC],borderWidth:2,borderColor:bgC}]},
+  options:{responsive:true,maintainAspectRatio:false,cutout:'68%',
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.label+': '+c.raw+' ('+Math.round(c.raw/115*100)+'%)'}}}}
 });
 
-new Chart(document.getElementById('e1-bar'), {
-  type: 'bar',
-  data: {
-    labels: ['BackOffice & Rel.','Outputs & Integração','Conferência & Regras','Enriquecimento','CI/CD & QA','UX Design','Infra & DevOps'],
-    datasets: [
-      { label: 'Done',         data: [0,0,0,0,1,20,10], backgroundColor: '#1D9E75', borderRadius: 3 },
-      { label: 'Em andamento', data: [0,4,4,3,0,0,0],   backgroundColor: '#7F77DD', borderRadius: 3 },
-      { label: 'Backlog',      data: [5,0,3,0,13,11,2], backgroundColor: isDark ? '#444441' : '#D3D1C7', borderRadius: 3 }
+new Chart(document.getElementById('e1-barchart'),{
+  type:'bar',
+  data:{
+    labels:['BackOffice & Rel.','Outputs & Integração','Conferência & Regras','Enriquecimento','CI/CD & QA','UX Design','Infra & DevOps'],
+    datasets:[
+      {label:'Done',        data:[0,0,0,0,1,34,10],backgroundColor:'#1D9E75',borderRadius:3},
+      {label:'Em andamento',data:[0,5,4,3,0, 7, 0],backgroundColor:'#7F77DD',borderRadius:3},
+      {label:'Backlog',     data:[5,0,6,0,13,25, 2],backgroundColor:blkB,     borderRadius:3}
     ]
   },
-  options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-    plugins: { legend: { display: false } },
-    scales: {
-      x: { stacked: true, grid: { color: gridC }, ticks: { font: { size: 11 }, stepSize: 5 }},
-      y: { stacked: true, grid: { display: false }, ticks: { font: { size: 11 }}}
+  options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{stacked:true,grid:{color:gridC},ticks:{font:{size:11},stepSize:5}},
+      y:{stacked:true,grid:{display:false},ticks:{font:{size:11}}}
     }
   }
 });
 
-new Chart(document.getElementById('e2-donut'), {
-  type: 'doughnut',
-  data: {
-    labels: ['Done','Ready for test','In progress','Pronto para dev','Backlog'],
-    datasets: [{ data: [0,1,3,7,23],
-      backgroundColor: ['#1D9E75','#EF9F27','#378ADD','#D85A30', isDark ? '#444441' : '#B4B2A9'],
-      borderWidth: 2, borderColor: bgDark }]
-  },
-  options: { responsive: true, maintainAspectRatio: false, cutout: '68%',
-    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' ' + c.label + ': ' + c.raw + ' (' + Math.round(c.raw/34*100) + '%)' }}}
-  }
+new Chart(document.getElementById('e2-donut'),{
+  type:'doughnut',
+  data:{labels:['Done','Ready for test','In progress','Pronto para dev','Backlog'],
+    datasets:[{data:[0,1,3,7,23],backgroundColor:['#1D9E75','#EF9F27','#378ADD','#D85A30',blkC],borderWidth:2,borderColor:bgC}]},
+  options:{responsive:true,maintainAspectRatio:false,cutout:'68%',
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.label+': '+c.raw+' ('+Math.round(c.raw/34*100)+'%)'}}}}
 });
 
-new Chart(document.getElementById('e2-bar'), {
-  type: 'bar',
-  data: {
-    labels: ['Recepção/Armazém','Worklist & Picking','Controlo & Contab.','Rec. Electrónica','Consulta RF#29','Dados Referência'],
-    datasets: [
-      { label: 'Done',         data: [0,0,0,0,0,0], backgroundColor: '#1D9E75', borderRadius: 3 },
-      { label: 'Em andamento', data: [0,1,0,0,10,0], backgroundColor: '#7F77DD', borderRadius: 3 },
-      { label: 'Backlog',      data: [9,3,3,4,0,4],  backgroundColor: isDark ? '#444441' : '#D3D1C7', borderRadius: 3 }
+new Chart(document.getElementById('e2-barchart'),{
+  type:'bar',
+  data:{
+    labels:['BackOffice & Rel.','Outputs & Integração','Conferência & Regras','Enriquecimento','CI/CD & QA','UX Design','Infra & DevOps'],
+    datasets:[
+      {label:'Done',        data:[0,0,0,0,0,0,0],backgroundColor:'#1D9E75',borderRadius:3},
+      {label:'Em andamento',data:[11,0,0,0,0,0,0],backgroundColor:'#7F77DD',borderRadius:3},
+      {label:'Backlog',     data:[23,0,0,0,0,0,0],backgroundColor:blkB,    borderRadius:3}
     ]
   },
-  options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-    plugins: { legend: { display: false } },
-    scales: {
-      x: { stacked: true, grid: { color: gridC }, ticks: { font: { size: 11 }, stepSize: 3 }},
-      y: { stacked: true, grid: { display: false }, ticks: { font: { size: 11 }}}
+  options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{stacked:true,grid:{color:gridC},ticks:{font:{size:11},stepSize:5}},
+      y:{stacked:true,grid:{display:false},ticks:{font:{size:11}}}
     }
   }
 });
 
-function downloadCSV() {
-  const now = new Date();
-  const dt = now.toISOString().slice(0,10);
-  const ts = String(now.getDate()).padStart(2,'0')+'/'+String(now.getMonth()+1).padStart(2,'0')+'/'+now.getFullYear()+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-  const rows = [
-    ['Entrega','Total','Done','Ready for Test','In Progress','Em Detalhamento','Pronto para Dev','Backlog','% Conclusão','Dias Restantes','Data Geração'],
-    ['Entrega 1','76','31','3','1','5','2','34','41%','39',ts],
-    ['Entrega 2','34','0','1','3','0','7','23','0%','68',ts],
-    ['TOTAL','110','31','4','4','5','9','57','28%','—',ts]
+
+function downloadCSV(){
+  const n=new Date(), dt=n.toISOString().slice(0,10);
+  const stories=[
+    ['Entrega','Ref','Atividade','Status'],
+    ['Entrega 1','#27','T04 — Containerização Docker (todos os componentes)','Done'],
+    ['Entrega 1','#28','T05 — Orquestração Kubernetes (Helm Charts + Manifests)','Done'],
+    ['Entrega 1','#29','T06-DEV — Provisionamento de Ambiente DEV','Backlog'],
+    ['Entrega 1','#32','T07 — Setup RabbitMQ Cluster + Redis Cluster','Done'],
+    ['Entrega 1','#33','T08 — Monitorização, Observabilidade e Alertas','Done'],
+    ['Entrega 1','#34','T09 — Pipeline CI/CD — Stages de Build, Testes e Quality Gate','Backlog'],
+    ['Entrega 1','#35','T10 — Pipeline CI/CD — Stages de Segurança (SAST / SCA / Container Scan)','Backlog'],
+    ['Entrega 1','#36','T11 — Pipeline CI/CD — Stages de Deploy, Release e Rollback','Backlog'],
+    ['Entrega 1','#37','T12 — Container Registry e Gestão de Artefactos','Backlog'],
+    ['Entrega 1','#38','T13 — Setup SonarQube — Quality Profiles e Quality Gates','Backlog'],
+    ['Entrega 1','#39','T14 — Framework Testes Unitários (JUnit 5 + Mockito + AssertJ)','Done'],
+    ['Entrega 1','#40','T15 — Framework Testes de Integração (Testcontainers + WireMock)','Backlog'],
+    ['Entrega 1','#41','T16 — Framework Testes E2E Frontend (Cypress / Playwright)','Backlog'],
+    ['Entrega 1','#42','T17 — Framework Testes de API (REST Assured + Postman/Newman)','Backlog'],
+    ['Entrega 1','#43','T18 — Framework Testes de Performance (JMeter / Gatling + Grafana)','Backlog'],
+    ['Entrega 1','#44','T19 — Execução de Testes de Performance — Todas as Entregas','Backlog'],
+    ['Entrega 1','#45','T20 — Framework Testes de Segurança Dinâmica (OWASP ZAP)','Backlog'],
+    ['Entrega 1','#46','T21 — Execução de Testes de Segurança DAST — Todas as Entregas','Backlog'],
+    ['Entrega 1','#47','T22 — Gestão de Dados de Teste e Massa de Dados Sintética','Backlog'],
+    ['Entrega 1','#48','RF#54 — Gestão de Utilizadores e Perfis (RBAC)','Backlog'],
+    ['Entrega 1','#50','RF#31-Med — Enriquecimento de Dados — Medicamentos','Ready for test'],
+    ['Entrega 1','#51','RF#31-MCDT — Enriquecimento de Dados — MCDT','In progress'],
+    ['Entrega 1','#52','RF#31-CRD — Enriquecimento de Dados — CRD','Ready for test'],
+    ['Entrega 1','#53','RF#30 — Gestão de Regras de Conferência','Em Detalhamento'],
+    ['Entrega 1','#54','RF#32 — Motor de Regras de Conferência','Pronto para Desenvolvimento'],
+    ['Entrega 1','#56','RF#32 — Processo de Conferência','Em Detalhamento'],
+    ['Entrega 1','#58','RF#35 — Cockpit de Gestão de Conferência por Ciclo','Em Detalhamento'],
+    ['Entrega 1','#59','RF#38 — Controlo de Qualidade Pós-Conferência','Backlog'],
+    ['Entrega 1','#60','RF#36 — Gestão de Alarmística de Conferência','Backlog'],
+    ['Entrega 1','#61','RF#37 [E1] — Worklist — Motor de Geração de Tarefas','Backlog'],
+    ['Entrega 1','#62','RF#39 — Outputs Financeiros e Integração SICC','Em Detalhamento'],
+    ['Entrega 1','#63','RF#40 — Outputs para os Prestadores','Pronto para Desenvolvimento'],
+    ['Entrega 1','#64','RF#41 — Outputs Logísticos','Ready for test'],
+    ['Entrega 1','#65','RF#42 — Outputs de Dados Internos','Em Detalhamento'],
+    ['Entrega 1','#909','T01 — Setup Microserviço Core API (Spring Boot 3 / Java 21)','Done'],
+    ['Entrega 1','#910','T01 — Setup Microserviço Rules Engine (Spring Boot 3 / Java 21)','Done'],
+    ['Entrega 1','#911','T01 — Setup Microserviço Integration Service (Spring Boot 3 / Java 21)','Done'],
+    ['Entrega 1','#912','T01 — Setup Microserviço Public API (Spring Boot 3 / Java 21)','Done'],
+    ['Entrega 1','#913','T01 — Setup Microserviço ETL Orchestrator (Spring Boot 3 / Java 21)','Backlog'],
+    ['Entrega 1','#914','T01 — Setup Microserviço Report Engine (Spring Boot 3 / Java 21)','Done'],
+    ['Entrega 1','#915','T02 — Setup Frontend (React 18 / TypeScript / Nginx)','Done'],
+    ['Entrega 1','#977','RF#43 — Produção e Extracção de Relatórios Personalizados','Backlog'],
+    ['Entrega 1','#983','RF#58 — Dashboard de Produtividade de Conferentes e Operadores','Backlog'],
+    ['Entrega 1','#987','RF#55 — Consulta de Auditoria e Rastreabilidade','Backlog'],
+    ['Entrega 1','#995','RF#56 — Painel de Execução e Monitorização de Processos','Backlog'],
+    ['Entrega 1','#1021','Estruturar UX','Done'],
+    ['Entrega 1','#1037','UX-001 — UX - Tela - Registo de Entrada','Backlog'],
+    ['Entrega 1','#1038','UX-002 — UX - Tela - Registo de Entrada ANF','Backlog'],
+    ['Entrega 1','#1039','UX-003 — UX - Tela - Faturas com Incidência','In progress'],
+    ['Entrega 1','#1040','UX-004 — UX - Tela - Completar Fatura','In progress'],
+    ['Entrega 1','#1041','UX-005 — UX - Tela - Movimentações','Backlog'],
+    ['Entrega 1','#1042','UX-006 — UX - Tela - Correções de Arquivo','Backlog'],
+    ['Entrega 1','#1043','UX-007 — UX - Tela - Dados de Preparação','Backlog'],
+    ['Entrega 1','#1044','UX-008 — UX - Tela - Liberar Armazém Temporário','Backlog'],
+    ['Entrega 1','#1045','UX-009 — UX - Tela - Pesquisa','Backlog'],
+    ['Entrega 1','#1046','UX-010 — UX - Tela - Picking para Expedição','Backlog'],
+    ['Entrega 1','#1047','UX-011 — UX - Tela - Pesquisa de Expedição','Backlog'],
+    ['Entrega 1','#1048','UX-012 — UX - Tela - Recolha Fatura','Done'],
+    ['Entrega 1','#1049','UX-013 — UX - Tela - Recolha Notas','Done'],
+    ['Entrega 1','#1050','UX-014 — UX - Tela - Despesas Não Conferidas','Done'],
+    ['Entrega 1','#1051','UX-015 — UX - Tela - Despesas Conferidas','Done'],
+    ['Entrega 1','#1052','UX-016 — UX - Tela - Convenções','Done'],
+    ['Entrega 1','#1053','UX-017 — UX - Tela - Embalagens e Medicamentos','Done'],
+    ['Entrega 1','#1054','UX-018 — UX - Tela - Exames MCDT','Done'],
+    ['Entrega 1','#1055','UX-019 — UX - Tela - Pesquisa de Mensagens FE','Done'],
+    ['Entrega 1','#1056','UX-020 — UX - Tela - Medicamentos - Factura','Done'],
+    ['Entrega 1','#1057','UX-021 — UX - Tela - Medicamentos - Lote','Done'],
+    ['Entrega 1','#1058','UX-022 — UX - Tela - Medicamentos - Prescrição/Prestação','Done'],
+    ['Entrega 1','#1059','UX-023 — UX - Tela - MCDT - Factura','Done'],
+    ['Entrega 1','#1060','UX-024 — UX - Tela - MCDT - Lote','Done'],
+    ['Entrega 1','#1061','UX-025 — UX - Tela - MCDT - Prescrição/Prestação','Done'],
+    ['Entrega 1','#1062','UX-026 — UX - Tela - MCDT - Prestação IPATIMUP','Done'],
+    ['Entrega 1','#1063','UX-027 — UX - Tela - Cuidados Continuados - Factura','Done'],
+    ['Entrega 1','#1064','UX-028 — UX - Tela - Cuidados Respiratórios Domiciliários - Factura','Done'],
+    ['Entrega 1','#1065','UX-029 — UX - Tela - Cuidados Respiratórios Domiciliários - Lote','Done'],
+    ['Entrega 1','#1066','UX-030 — UX - Tela - Cuidados Respiratórios Domiciliários - Prescrição/Prestação','Done'],
+    ['Entrega 1','#1067','UX-031 — UX - Tela - Hemodiálise - Factura','Done'],
+    ['Entrega 1','#1068','UX-032 — UX - Tela - Hemodiálise - Prescrição/Prestação','Done'],
+    ['Entrega 1','#1069','UX-033 — UX - Tela - Tratamentos Termais - Factura','Done'],
+    ['Entrega 1','#1070','UX-034 — UX - Tela - Tratamentos Termais - Lote','Done'],
+    ['Entrega 1','#1071','UX-035 — UX - Tela - Tratamentos Termais - Prescrição/Prestação','Done'],
+    ['Entrega 1','#1072','UX-036 — UX - Tela - Saúde Oral - Factura','Done'],
+    ['Entrega 1','#1073','UX-037 — UX - Tela - Saúde Oral - Prescrição/Prestação','Done'],
+    ['Entrega 1','#1074','UX-038 — UX - Tela - Vacinação - Factura','Done'],
+    ['Entrega 1','#1075','UX-039 — UX - Tela - Vacinação - Prescrição/Prestação','Done'],
+    ['Entrega 1','#1076','UX-040 — UX - Tela - Dispensa em Proximidade - Factura','Done'],
+    ['Entrega 1','#1077','UX-041 — UX - Tela - Dispensa em Proximidade - Prescrição/Prestação','Done'],
+    ['Entrega 1','#1078','UX-042 — UX - Tela - Programa Troca de Seringas - Factura','Pronto para Desenvolvimento'],
+    ['Entrega 1','#1079','UX-043 — UX - Tela - Faturação de Migrantes - Factura','Pronto para Desenvolvimento'],
+    ['Entrega 1','#1080','UX-044 — UX - Tela - Gestão de Regras de Conferência','In progress'],
+    ['Entrega 1','#1081','UX-045 — UX - Tela - Cockpit de Gestão de Conferência por Ciclo','Pronto para Desenvolvimento'],
+    ['Entrega 1','#1082','UX-046 — UX - Tela - Gestão de Alarmística de Conferência','Pronto para Desenvolvimento'],
+    ['Entrega 1','#1083','UX-047 — UX - Tela - Controlo de Qualidade Pós-Conferência','Backlog'],
+    ['Entrega 1','#1084','UX-048 — UX - Tela - Faturas Conferidas com Erro CC','Backlog'],
+    ['Entrega 1','#1085','UX-049 — UX - Tela - Conferencia Manual - Worklist','Backlog'],
+    ['Entrega 1','#1086','UX-050 — UX - Tela - Conferência Manual - Supervisão','Backlog'],
+    ['Entrega 1','#1087','UX-051 — UX - Tela - Upload e Monitorização de Ficheiros AF','Backlog'],
+    ['Entrega 1','#1088','UX-052 — UX - Tela - Criar Reclamação','Backlog'],
+    ['Entrega 1','#1089','UX-053 — UX - Tela - Notificação de Reclamação','Backlog'],
+    ['Entrega 1','#1090','UX-054 — UX - Tela - Iniciar Reconferência','Backlog'],
+    ['Entrega 1','#1091','UX-055 — UX - Tela - Gestão de Reclamações','Backlog'],
+    ['Entrega 1','#1092','UX-056 — UX - Tela - Pesquisa Estado Ficheiro de Reclamações','Backlog'],
+    ['Entrega 1','#1093','UX-057 — UX - Tela - Pesquisa de Documentos Pendentes de Devolução','Backlog'],
+    ['Entrega 1','#1094','UX-058 — UX - Tela - Exportação de Ofícios de Reclamação','Backlog'],
+    ['Entrega 1','#1095','UX-059 — UX - Tela - Dashboard Financeiro','Backlog'],
+    ['Entrega 1','#1096','UX-060 — UX - Tela - Dashboard Conferência','Backlog'],
+    ['Entrega 1','#1097','UX-061 — UX - Tela - Produtividade Conf. Manual','Backlog'],
+    ['Entrega 1','#1098','UX-062 — UX - Tela - Produtividade Preparação','Backlog'],
+    ['Entrega 1','#1126','UX-063 — UX - Tela - Unidades Terapêuticas de Sangue - Factura','Done'],
+    ['Entrega 1','#1127','UX-064 — UX - Tela - Unidades Terapêuticas de Sangue - Cópia factura','Done'],
+    ['Entrega 1','#1128','UX-065 — UX - Tela - Unidades Terapêuticas de Sangue - Prescrição/Prestação','Done'],
+    ['Entrega 1','#1130','RF#33 - Regras de Conferência — Medicamentos','Backlog'],
+    ['Entrega 1','#1131','RF#33 - Regras de Conferência — MCDT','Backlog'],
+    ['Entrega 1','#1132','RF#33 - Regras de Conferência — CRD','Backlog'],
+    ['Entrega 1','#1397','RF#42 — Outputs de Dados Internos - Geração de Tabelas de Snapshots','Pronto para Desenvolvimento'],
+    ['Entrega 2','#49','RF#28 — Gestão de Dados de Referência de Exames MCDT','Backlog'],
+    ['Entrega 2','#923','RF#01 — Registo de Entrada (Armazém)','Backlog'],
+    ['Entrega 2','#925','RF#02 — Recepção de Prestador','Backlog'],
+    ['Entrega 2','#927','RF#03 — Controlo de Prazo de Entrega','Backlog'],
+    ['Entrega 2','#929','RF#04 — Gestão de Devoluções e Avarias','Backlog'],
+    ['Entrega 2','#930','RF#13 — Conferência Manual — Ecrã Lado a Lado','Backlog'],
+    ['Entrega 2','#933','RF#05 — Gestão de Recepção Especial','Backlog'],
+    ['Entrega 2','#934','RF#37 [E2] — Worklist — Ecrãs de Gestão e Atribuição','Backlog'],
+    ['Entrega 2','#936','RF#06 — Consulta e Pesquisa de Entradas de Armazém','Backlog'],
+    ['Entrega 2','#941','RF#15 — Expedição de Documentos','Backlog'],
+    ['Entrega 2','#942','RF#07 — Consulta de Histórico de Prestador','Backlog'],
+    ['Entrega 2','#947','RF#16 — Recepção Electrónica — Public API / Web Service','Backlog'],
+    ['Entrega 2','#950','RF#08 — Contabilização de Documentos','Backlog'],
+    ['Entrega 2','#953','RF#17 — Validação de Assinatura Digital XML (eIDAS)','Backlog'],
+    ['Entrega 2','#957','RF#09 — Reconciliação e Fechos Mensais','Backlog'],
+    ['Entrega 2','#960','RF#18 — Indexação e Digitalização (Captiva / OCR)','Backlog'],
+    ['Entrega 2','#963','RF#10 — Preparação / Enriquecimento Inicial de Dados','Backlog'],
+    ['Entrega 2','#967','RF#19 — Gestão de Exceções de Recepção Electrónica','Backlog'],
+    ['Entrega 2','#969','RF#11 — Worklist de Picking / Gestão de Filas','Backlog'],
+    ['Entrega 2','#972','RF#20 — Notificação a Prestadores','Backlog'],
+    ['Entrega 2','#975','RF#12 — Picking de Documentos','Pronto para Desenvolvimento'],
+    ['Entrega 2','#978','RF#21 — Consulta do Estado de Submissão','Backlog'],
+    ['Entrega 2','#981','RF#14 — Gestão de Tipos de Devolução','Backlog'],
+    ['Entrega 2','#991','RF#57 — Gestão de Dados de Referência','Backlog'],
+    ['Entrega 2','#1099','RF#29 · Consulta por Área de Prestação · Medicamentos — Factura','In progress'],
+    ['Entrega 2','#1100','RF#29 · Consulta por Área de Prestação · Medicamentos — Lote','Ready for test'],
+    ['Entrega 2','#1101','RF#29 · Consulta por Área de Prestação · Medicamentos — Prescrição/Prestação','In progress'],
+    ['Entrega 2','#1102','RF#29 · Consulta por Área de Prestação · MCDT — Factura','Pronto para Desenvolvimento'],
+    ['Entrega 2','#1103','RF#29 · Consulta por Área de Prestação · MCDT — Lote','In progress'],
+    ['Entrega 2','#1104','RF#29 · Consulta por Área de Prestação · MCDT — Prescrição/Prestação','Pronto para Desenvolvimento'],
+    ['Entrega 2','#1105','RF#29 · Consulta por Área de Prestação · MCDT — Prestação IPATIMUP','Pronto para Desenvolvimento'],
+    ['Entrega 2','#1106','RF#29 · Consulta por Área de Prestação · Cuidados Respiratórios Domiciliários — Factura','Pronto para Desenvolvimento'],
+    ['Entrega 2','#1107','RF#29 · Consulta por Área de Prestação · Cuidados Respiratórios Domiciliários — Lote','Pronto para Desenvolvimento'],
+    ['Entrega 2','#1108','RF#29 · Consulta por Área de Prestação · Cuidados Respiratórios Domiciliários — Prescrição/Prestação','Pronto para Desenvolvimento'],
   ];
-  const csv = rows.map(r => r.map(v => '"'+v+'"').join(',')).join('\n');
-  const blob = new Blob(['\uFEFF'+csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'spms-ccm-dashboard-'+dt+'.csv';
-  a.click(); URL.revokeObjectURL(url);
+  const csv=stories.map(r=>r.map(v=>'"'+v+'"').join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='spms-ccm-atividades-'+dt+'.csv'; a.click(); URL.revokeObjectURL(url);
 }
 </script>
 </body>
