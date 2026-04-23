@@ -142,7 +142,7 @@
       <div class="kcol"><div class="klbl">Done</div><div class="knum" style="color:#1D9E75;">45</div><div class="kbar" style="background:#1D9E75;"></div></div>
     </div>
     <div class="info-bar">
-      45 histórias concluídas (39%) num total de 115 — 34 telas UX entregues e infraestrutura core operacional. 19 histórias em pipeline, com Enriquecimento em fase de testes, Conferência e Outputs em detalhamento e desenvolvimento.
+      45 histórias concluídas (39%) em 115 — 33 telas UX entregues e infraestrutura core operacional. 19 histórias ativas no pipeline, com Enriquecimento em testes e módulos de Conferência e Outputs em detalhamento e desenvolvimento.
     </div>
   </div>
 </div>
@@ -173,11 +173,12 @@
   <div class="charts-row">
     <div class="card">
       <div class="card-title">Por status</div>
-      <div style="position:relative;height:150px;"><canvas id="e2-donut" role="img" aria-label="0 Done, 1 Ready for test, 3 In progress, 7 Pronto para Dev, 23 Backlog">Distribuição por status E2</canvas></div>
+      <div style="position:relative;height:150px;"><canvas id="e2-donut" role="img" aria-label="0 Done, 1 Ready for test, 3 In progress, 0 Em Detalhamento, 7 Pronto para Dev, 23 Backlog">Distribuição por status E2</canvas></div>
       <div class="legend">
         <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#1D9E75;"></span>Done</span><span class="leg-n">0</span></div>
         <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#EF9F27;"></span>Ready for test</span><span class="leg-n">1</span></div>
         <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#378ADD;"></span>In progress</span><span class="leg-n">3</span></div>
+        <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#7F77DD;"></span>Em detalhamento</span><span class="leg-n">0</span></div>
         <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#D85A30;"></span>Pronto para dev</span><span class="leg-n">7</span></div>
         <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#B4B2A9;"></span>Backlog</span><span class="leg-n">23</span></div>
       </div>
@@ -204,7 +205,7 @@
       <div class="kcol"><div class="klbl">Done</div><div class="knum" style="color:#1D9E75;">0</div><div class="kbar" style="background:#1D9E75;"></div></div>
     </div>
     <div class="info-bar">
-      Pipeline em evolução: 7 histórias prontas para desenvolvimento, 3 em progresso e 1 em fase de testes. RF#29 Consulta por Área de Prestação avançando em múltiplos módulos simultaneamente.
+      Pipeline com 11 histórias ativas de um total de 34 — 7 aguardam desenvolvimento e 3 estão em progresso. RF#29 Consulta por Área de Prestação avança com múltiplas variantes em execução simultânea.
     </div>
   </div>
 </div>
@@ -263,7 +264,7 @@ new Chart(document.getElementById('e1-barchart'),{
     datasets:[
       {label:'Done',        data:[0,0,0,0,1,34,10],backgroundColor:'#1D9E75',borderRadius:3},
       {label:'Em andamento',data:[0,5,4,3,0, 7, 0],backgroundColor:'#7F77DD',borderRadius:3},
-      {label:'Backlog',     data:[5,0,6,0,13,25, 2],backgroundColor:blkB,     borderRadius:3}
+      {label:'Backlog',     data:[8,0,3,0,13,25, 2],backgroundColor:blkB,     borderRadius:3}
     ]
   },
   options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
@@ -277,8 +278,8 @@ new Chart(document.getElementById('e1-barchart'),{
 
 new Chart(document.getElementById('e2-donut'),{
   type:'doughnut',
-  data:{labels:['Done','Ready for test','In progress','Pronto para dev','Backlog'],
-    datasets:[{data:[0,1,3,7,23],backgroundColor:['#1D9E75','#EF9F27','#378ADD','#D85A30',blkC],borderWidth:2,borderColor:bgC}]},
+  data:{labels:['Done','Ready for test','In progress','Em detalhamento','Pronto para dev','Backlog'],
+    datasets:[{data:[0,1,3,0,7,23],backgroundColor:['#1D9E75','#EF9F27','#378ADD','#7F77DD','#D85A30',blkC],borderWidth:2,borderColor:bgC}]},
   options:{responsive:true,maintainAspectRatio:false,cutout:'68%',
     plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.label+': '+c.raw+' ('+Math.round(c.raw/34*100)+'%)'}}}}
 });
