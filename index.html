@@ -103,21 +103,21 @@
   <div class="metrics-grid">
     <div class="mc"><div class="mc-lbl">Total histórias</div><div class="mc-val">115</div></div>
     <div class="mc"><div class="mc-lbl">Done</div><div class="mc-val" style="color:#1D9E75;">45</div><div class="mc-sub">39% concluídas</div></div>
-    <div class="mc"><div class="mc-lbl">Em pipeline</div><div class="mc-val" style="color:#7F77DD;">19</div><div class="mc-sub">17% em andamento</div></div>
-    <div class="mc"><div class="mc-lbl">Backlog</div><div class="mc-val">51</div><div class="mc-sub">44% restantes</div></div>
+    <div class="mc"><div class="mc-lbl">Em pipeline</div><div class="mc-val" style="color:#7F77DD;">20</div><div class="mc-sub">17% em andamento</div></div>
+    <div class="mc"><div class="mc-lbl">Backlog</div><div class="mc-val">50</div><div class="mc-sub">43% restantes</div></div>
   </div>
 
   <div class="charts-row">
     <div class="card">
       <div class="card-title">Por status</div>
-      <div style="position:relative;height:150px;"><canvas id="e1-donut" role="img" aria-label="45 Done, 4 Ready for test, 4 In progress, 5 Em Detalhamento, 6 Pronto para Dev, 51 Backlog">Distribuição por status E1</canvas></div>
+      <div style="position:relative;height:150px;"><canvas id="e1-donut" role="img" aria-label="45 Done, 4 Ready for test, 4 In progress, 5 Em Detalhamento, 7 Pronto para Dev, 50 Backlog">Distribuição por status E1</canvas></div>
       <div class="legend">
         <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#1D9E75;"></span>Done</span><span class="leg-n">45</span></div>
         <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#EF9F27;"></span>Ready for test</span><span class="leg-n">4</span></div>
         <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#378ADD;"></span>In progress</span><span class="leg-n">4</span></div>
         <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#7F77DD;"></span>Em detalhamento</span><span class="leg-n">5</span></div>
-        <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#D85A30;"></span>Pronto para dev</span><span class="leg-n">6</span></div>
-        <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#B4B2A9;"></span>Backlog</span><span class="leg-n">51</span></div>
+        <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#D85A30;"></span>Pronto para dev</span><span class="leg-n">7</span></div>
+        <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#B4B2A9;"></span>Backlog</span><span class="leg-n">50</span></div>
       </div>
     </div>
     <div class="card">
@@ -134,15 +134,15 @@
   <div class="card">
     <div class="card-title">Pipeline kanban</div>
     <div class="kanban">
-      <div class="kcol"><div class="klbl">Backlog</div><div class="knum">51</div><div class="kbar" style="background:#B4B2A9;"></div></div>
+      <div class="kcol"><div class="klbl">Backlog</div><div class="knum">50</div><div class="kbar" style="background:#B4B2A9;"></div></div>
       <div class="kcol"><div class="klbl">Em Detalhamento</div><div class="knum" style="color:#7F77DD;">5</div><div class="kbar" style="background:#7F77DD;"></div></div>
-      <div class="kcol"><div class="klbl">Pronto para Dev</div><div class="knum" style="color:#D85A30;">6</div><div class="kbar" style="background:#D85A30;"></div></div>
+      <div class="kcol"><div class="klbl">Pronto para Dev</div><div class="knum" style="color:#D85A30;">7</div><div class="kbar" style="background:#D85A30;"></div></div>
       <div class="kcol"><div class="klbl">In Progress</div><div class="knum" style="color:#378ADD;">4</div><div class="kbar" style="background:#378ADD;"></div></div>
       <div class="kcol"><div class="klbl">Ready for Test</div><div class="knum" style="color:#EF9F27;">4</div><div class="kbar" style="background:#EF9F27;"></div></div>
       <div class="kcol"><div class="klbl">Done</div><div class="knum" style="color:#1D9E75;">45</div><div class="kbar" style="background:#1D9E75;"></div></div>
     </div>
     <div class="info-bar">
-      45 histórias concluídas (39%) de 115. 19 histórias em pipeline activo: Enriquecimento em fase de testes, módulos de Conferência em detalhamento e Outputs em desenvolvimento e validação.
+      45 histórias concluídas (39%) de 115. 20 histórias em pipeline activo: Enriquecimento em fase de testes, módulos de Conferência em detalhamento e Outputs em desenvolvimento e validação.
     </div>
   </div>
 </div>
@@ -252,7 +252,7 @@ Chart.defaults.color=lblC;
 new Chart(document.getElementById('e1-donut'),{
   type:'doughnut',
   data:{labels:['Done','Ready for test','In progress','Em detalhamento','Pronto para dev','Backlog'],
-    datasets:[{data:[45,4,4,5,6,51],backgroundColor:['#1D9E75','#EF9F27','#378ADD','#7F77DD','#D85A30',blkC],borderWidth:2,borderColor:bgC}]},
+    datasets:[{data:[45,4,4,5,7,50],backgroundColor:['#1D9E75','#EF9F27','#378ADD','#7F77DD','#D85A30',blkC],borderWidth:2,borderColor:bgC}]},
   options:{responsive:true,maintainAspectRatio:false,cutout:'68%',
     plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.label+': '+c.raw+' ('+Math.round(c.raw/115*100)+'%)'}}}}
 });
@@ -263,8 +263,8 @@ new Chart(document.getElementById('e1-barchart'),{
     labels:['BackOffice & Rel.','Outputs & Integração','Conferência & Regras','Enriquecimento','CI/CD & QA','UX Design','Infra & DevOps'],
     datasets:[
       {label:'Done',        data:[0,0,0,0,1,34,10],backgroundColor:'#1D9E75',borderRadius:3},
-      {label:'Em andamento',data:[0,5,4,3,0, 7, 0],backgroundColor:'#7F77DD',borderRadius:3},
-      {label:'Backlog',     data:[8,0,3,0,13,25, 2],backgroundColor:blkB,     borderRadius:3}
+      {label:'Em andamento',data:[0,5,4,3,0, 8, 0],backgroundColor:'#7F77DD',borderRadius:3},
+      {label:'Backlog',     data:[8,0,3,0,13,24, 2],backgroundColor:blkB,     borderRadius:3}
     ]
   },
   options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
@@ -402,7 +402,7 @@ function downloadCSV(){
     ['Entrega 1','#1082','UX-046 — UX - Tela - Gestão de Alarmística de Conferência','Pronto para Desenvolvimento'],
     ['Entrega 1','#1083','UX-047 — UX - Tela - Controlo de Qualidade Pós-Conferência','Backlog'],
     ['Entrega 1','#1084','UX-048 — UX - Tela - Faturas Conferidas com Erro CC','Backlog'],
-    ['Entrega 1','#1085','UX-049 — UX - Tela - Conferencia Manual - Worklist','Backlog'],
+    ['Entrega 1','#1085','UX-049 — UX - Tela - Conferencia Manual - Worklist','Pronto para Desenvolvimento'],
     ['Entrega 1','#1086','UX-050 — UX - Tela - Conferência Manual - Supervisão','Backlog'],
     ['Entrega 1','#1087','UX-051 — UX - Tela - Upload e Monitorização de Ficheiros AF','Backlog'],
     ['Entrega 1','#1088','UX-052 — UX - Tela - Criar Reclamação','Backlog'],
