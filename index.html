@@ -174,12 +174,12 @@
   <div class="charts-row">
     <div class="card">
       <div class="card-title">Por status</div>
-      <div style="position:relative;height:150px;"><canvas id="e2-donut" role="img" aria-label="0 Done, 12 Ready for test, 2 In progress, 3 Em Detalhamento, 1 Pronto para Dev, 32 Backlog">Distribuição por status E2</canvas></div>
+      <div style="position:relative;height:150px;"><canvas id="e2-donut" role="img" aria-label="0 Done, 12 Ready for test, 3 In progress, 2 Em Detalhamento, 1 Pronto para Dev, 32 Backlog">Distribuição por status E2</canvas></div>
       <div class="legend">
         <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#1D9E75;"></span>Done</span><span class="leg-n">0</span></div>
         <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#EF9F27;"></span>Ready for test</span><span class="leg-n">12</span></div>
-        <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#378ADD;"></span>In progress</span><span class="leg-n">2</span></div>
-        <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#7F77DD;"></span>Em detalhamento</span><span class="leg-n">3</span></div>
+        <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#378ADD;"></span>In progress</span><span class="leg-n">3</span></div>
+        <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#7F77DD;"></span>Em detalhamento</span><span class="leg-n">2</span></div>
         <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#D85A30;"></span>Pronto para dev</span><span class="leg-n">1</span></div>
         <div class="leg-row"><span class="leg-left"><span class="leg-dot" style="background:#B4B2A9;"></span>Backlog</span><span class="leg-n">32</span></div>
       </div>
@@ -199,14 +199,14 @@
     <div class="card-title">Pipeline kanban</div>
     <div class="kanban">
       <div class="kcol"><div class="klbl">Backlog</div><div class="knum">32</div><div class="kbar" style="background:#B4B2A9;"></div></div>
-      <div class="kcol"><div class="klbl">Em Detalhamento</div><div class="knum" style="color:#7F77DD;">3</div><div class="kbar" style="background:#7F77DD;"></div></div>
+      <div class="kcol"><div class="klbl">Em Detalhamento</div><div class="knum" style="color:#7F77DD;">2</div><div class="kbar" style="background:#7F77DD;"></div></div>
       <div class="kcol"><div class="klbl">Pronto para Dev</div><div class="knum" style="color:#D85A30;">1</div><div class="kbar" style="background:#D85A30;"></div></div>
-      <div class="kcol"><div class="klbl">In Progress</div><div class="knum" style="color:#378ADD;">2</div><div class="kbar" style="background:#378ADD;"></div></div>
+      <div class="kcol"><div class="klbl">In Progress</div><div class="knum" style="color:#378ADD;">3</div><div class="kbar" style="background:#378ADD;"></div></div>
       <div class="kcol"><div class="klbl">Ready for Test</div><div class="knum" style="color:#EF9F27;">12</div><div class="kbar" style="background:#EF9F27;"></div></div>
       <div class="kcol"><div class="klbl">Done</div><div class="knum" style="color:#1D9E75;">0</div><div class="kbar" style="background:#1D9E75;"></div></div>
     </div>
     <div class="info-bar">
-      12 histórias construídas e 6 em pipeline activo de um total de 50 — 1 pronta para desenvolvimento, 2 em execução, 3 em detalhamento. Consultas por Área de Prestação (Medicamentos, MCDT, CRD e Tratamentos Termais) consolidam-se em testes.
+      12 histórias construídas e 6 em pipeline activo de um total de 50 — 1 pronta para desenvolvimento, 3 em execução, 2 em detalhamento. Consultas por Área de Prestação (Medicamentos, MCDT, CRD e Tratamentos Termais) consolidam-se em testes, com Convenções a avançar para execução.
     </div>
   </div>
 </div>
@@ -280,7 +280,7 @@ new Chart(document.getElementById('e1-barchart'),{
 new Chart(document.getElementById('e2-donut'),{
   type:'doughnut',
   data:{labels:['Done','Ready for test','In progress','Em detalhamento','Pronto para dev','Backlog'],
-    datasets:[{data:[0,12,2,3,1,32],backgroundColor:['#1D9E75','#EF9F27','#378ADD','#7F77DD','#D85A30',blkC],borderWidth:2,borderColor:bgC}]},
+    datasets:[{data:[0,12,3,2,1,32],backgroundColor:['#1D9E75','#EF9F27','#378ADD','#7F77DD','#D85A30',blkC],borderWidth:2,borderColor:bgC}]},
   options:{responsive:true,maintainAspectRatio:false,cutout:'68%',
     plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.label+': '+c.raw+' ('+Math.round(c.raw/50*100)+'%)'}}}}
 });
@@ -472,7 +472,7 @@ function downloadCSV(){
     ['Entrega 2','#1421','RF#22 — Recolha Detalhe Notas','Backlog'],
     ['Entrega 2','#1422','RF#23 — Fecho Despesa Não Conferida','Backlog'],
     ['Entrega 2','#1423','RF#24 — Fecho Despesa Conferida','Backlog'],
-    ['Entrega 2','#1425','RF#26 — Convenções','Em Detalhamento'],
+    ['Entrega 2','#1425','RF#26 — Convenções','In progress'],
     ['Entrega 2','#1431','RF#45 — Receção de Reclamação via Portal','Backlog'],
     ['Entrega 2','#1432','RF#46 — Receção de Reclamação via E-mail','Backlog'],
   ];
